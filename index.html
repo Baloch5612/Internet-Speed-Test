@@ -380,13 +380,13 @@
 
         <div class="conn-info" id="connInfo">Detecting your connection…</div>
 
-        <button class="btn-main" id="startBtn" onclick="startSpeedTest()">Run Test</button>
-
         <div class="quality-section" id="qualitySection">
             <div class="quality-title">Estimated Connection Quality</div>
             <div class="quality-grid" id="qualityGrid"></div>
             <div class="quality-disclaimer">Estimated from your ping, download, and upload results — actual performance also depends on the specific app or service.</div>
         </div>
+
+        <button class="btn-main" id="startBtn" onclick="startSpeedTest()">Run Test</button>
     </div>
 
     <div class="ad-slot">
@@ -491,7 +491,14 @@
                 const upMbps = await measureUpload();
                 uploadResult.innerHTML = `${upMbps.toFixed(1)}<span>Mbps</span>`;
 
-                speedPhase.innerText = "DONE";
+                // Rest the dial on download, not whichever metric ran last —
+                // download is the conventional "headline" number people expect
+                // the needle to settle on (this is what Ookla's own gauge does
+                // too), so ending on upload made the result look artificially
+                // weak even when download was strong.
+                await pause(400);
+                await animateTo(downMbps);
+                speedPhase.innerText = "DOWNLOAD (SHOWN)";
                 renderQuality(pingMs, downMbps, upMbps);
 
             } catch (error) {
